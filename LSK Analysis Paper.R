@@ -141,6 +141,9 @@ head(markers_high_vs_low)
 # -----------------------------
 # 1. Prepare markers dataframe
 # -----------------------------
+                         
+markers <- FindMarkers(ly6a_present_cell, ident.1 = "High", ident.2 = "Low", logfc.threshold = 0.25)
+head(markers)
 markers <- as.data.frame(markers)
 markers <- markers %>% rownames_to_column("gene")
 
@@ -319,6 +322,7 @@ head(go_low@result)
 write.csv(go_low1,"go_lowv2.csv")
 # Visualization
 dotplot(go_low, showCategory = 10)
+
 
 
 
