@@ -1,8 +1,9 @@
 # LSK-Analysis
 
-LSK scRNA-seq Analysis SummaryThis script analyzes scRNA-seq data from LSK cells, focusing on Ly6a (Sca-1) expression.
+# LSK scRNA-seq Analysis Summary
+This script analyzes scRNA-seq data from LSK cells, focusing on Ly6a (Sca-1) expression.
 
-Setup & QC: Loads data, then creates a Seurat object, and performs QC filtering (nFeature, nCount, %mt).
+Setup & QC: Loads data, then creates a Seurat object, and performs QC filtering (nFeature, nCount, %mt). Filters cells based on established quality metrics:nFeature_RNA= 200 to 4000, nCount_RNA= 200 to  10000 and Max mito content: < 10%.
 
 Core Analysis: Normalizes, scales, runs PCA, UMAP, and clustering.
 
