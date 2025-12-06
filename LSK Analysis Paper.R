@@ -120,6 +120,12 @@ ggplot(cellcycle_summary, aes(x = Phase, y = percent, fill = expression_group)) 
   ylab("Percentage") + xlab("Cell Cycle Phase") +
   theme_minimal()
 
+ #  Ly6a  Cell Cycle Distribution                      
+ggplot(ly6a_present_cell@meta.data, aes(x = expression_group, fill = Phase)) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  labs(y = "Proportion", title = "Cell Cycle Distribution in Ly6a High, Medium, and Low")
+
 ###############################
 # 8. Differential Expression: Ly6a High vs Low
 ###############################
@@ -155,5 +161,6 @@ ggplot(top_terms, aes(x=reorder(Description, -p.adjust), y=-log10(p.adjust), fil
   labs(title="Top 15 Enriched GO Terms (Ly6a High vs Low)",
        x="GO Term", y="-log10(adjusted p-value)") +
   theme_minimal()
+
 
 
