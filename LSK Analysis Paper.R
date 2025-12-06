@@ -138,29 +138,187 @@ head(markers_high_vs_low)
 ###############################
 # 9. GSEA / GO Analysis
 ###############################
-gene_list <- markers_high_vs_low$avg_log2FC
-names(gene_list) <- rownames(markers_high_vs_low)
-gene_list <- sort(gene_list, decreasing = TRUE)
+# -----------------------------
+# 1. Prepare markers dataframe
+# -----------------------------
+markers <- as.data.frame(markers)
+markers <- markers %>% rownames_to_column("gene")
 
-gene.df <- bitr(names(gene_list), fromType="SYMBOL", toType="ENTREZID", OrgDb=org.Mm.eg.db)
-gene_list <- gene_list[gene.df$SYMBOL]
-names(gene_list) <- gene.df$ENTREZID
+# -----------------------------
+# 2. Build the ranked vector
+# -----------------------------
+gsea_ranking <- markers %>%
+  filter(!is.na(avg_log2FC)) %>%      # remove NA
+  arrange(desc(avg_log2FC)) %>%       # strictly decreasing
+  select(gene, avg_log2FC)
 
-gsea_go <- gseGO(geneList=gene_list, OrgDb=org.Mm.eg.db, ont="BP", keyType="ENTREZID",
-                 minGSSize=10, maxGSSize=500, pvalueCutoff=0.05, verbose=TRUE)
+# Remove duplicates (GSEA requirement)
+gsea_ranking <- gsea_ranking[!duplicated(gsea_ranking$gene), ]
 
-# Top 15 GO terms
-top_terms <- as.data.frame(gsea_go) %>%
-  arrange(p.adjust) %>% head(15)
+# Convert to named numeric vector
+ranked_genes <- gsea_ranking$avg_log2FC
+names(ranked_genes) <- gsea_ranking$gene
 
-# Bar plot: NES and -log10(p.adjust)
-ggplot(top_terms, aes(x=reorder(Description, -p.adjust), y=-log10(p.adjust), fill=NES)) +
-  geom_bar(stat="identity") +
+# Ensure strictly decreasing sort
+ranked_genes <- sort(ranked_genes, decreasing = TRUE)
+
+# -----------------------------
+# 3. Run GSEA using GO:BP
+# -----------------------------
+gsea_go <- gseGO(
+  geneList = ranked_genes,
+  OrgDb = org.Mm.eg.db,
+  ont = "BP",
+  keyType = "SYMBOL",
+  minGSSize = 10,
+  maxGSSize = 500,
+  pvalueCutoff = 0.05,
+  verbose = TRUE
+)
+
+# -----------------------------
+# 4. Plot top results
+# -----------------------------
+library(enrichplot)
+
+dotplot(gsea_go, showCategory = 20) +
+  ggtitle("GSEA (GO Biological Process): Ly6a High vs Low")
+
+# Save in .csv
+write.csv(gsea_go@result, "Ly6a_gsea_go_results.csv", row.names = FALSE)
+
+# ------------------------------------------
+# Select top 15 Positive and Negative NES
+# ------------------------------------------
+
+top_positive <- gsea_go %>%
+  arrange(desc(NES)) %>%
+  head(15)
+
+top_negative <- gsea_go %>%
+  arrange(NES) %>%
+  head(15)
+
+# --------------------------------------------
+# Merge positive + negative
+# -------------------------------------------
+
+merged_gseaall <- rbind(top_positive, top_negative)
+
+# Convert p.adjust 
+merged_gseaall$p_label <- format(merged_gseaall$p.adjust,
+                              scientific = TRUE, digits = 2)
+
+# ----------------------------------------------------
+# Plot in a single combined panel with p-values
+# -----------------------------------------------
+
+ggplot(merged_gseaall,
+       aes(x = reorder(Description, NES),
+           y = NES,
+           fill = NES)) +
+
+  geom_bar(stat = "identity") +
+
+  # Add p-values on plot
+  geom_text(aes(label = p_label),
+            hjust = ifelse(merged_gsea$NES > 0, -0.15, 1.15),
+            size = 3) +
+
   coord_flip() +
-  scale_fill_gradient2(low="blue", mid="white", high="red", midpoint=0) +
-  labs(title="Top 15 Enriched GO Terms (Ly6a High vs Low)",
-       x="GO Term", y="-log10(adjusted p-value)") +
-  theme_minimal()
+
+  scale_fill_gradient2(
+    low = "blue",
+    mid = "white",
+    high = "red",
+    midpoint = 0
+  ) +
+
+  labs(
+    title = "Top 15 GO Terms Enriched in Ly6a High vs Ly6a Low LSK Cells",
+    x = "GO Terms",
+    y = "Normalized Enrichment Score (NES)",
+    fill = "NES"
+  ) +
+
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_text(size = 9),
+    plot.title = element_text(size = 14, face = "bold")
+  ) +
+
+  # Make room for labels outside bars
+  expand_limits(y = max(merged_gsea$NES) * 1.2)
+
+ ##############GO Analysis #####################################
+                         
+# Convert gene symbols to Entrez IDs
+Idents(ly6a_present_cell) <- "expression_group"  # Set group identity
+markers <- FindMarkers(ly6a_present_cell, ident.1 = "High", ident.2 = "Low", logfc.threshold = 0.25)
+head(markers)
+gene_list <- markers %>% rownames_to_column("gene") %>%
+  dplyr::filter(p_val_adj < 0.05) %>%
+  dplyr::arrange(desc(avg_log2FC)) %>%
+  dplyr::pull(gene)
+
+entrez_ids <- mapIds(org.Mm.eg.db, keys = gene_list, keytype = "SYMBOL", column = "ENTREZID")
+
+# Perform GO enrichment analysis
+go_results <- enrichGO(gene = entrez_ids, OrgDb = org.Mm.eg.db, keyType = "ENTREZID", ont = "BP")
+
+# Plot results
+dotplot(go_results)
+
+table(ly6a_present_cell$expression_group, ly6a_present_cell$Phase)
+
+summary(FetchData(ly6a_present_cell, vars = "Cd19"))
+sum(FetchData(ly6a_present_cell, vars = "Cd19") > 0)
+
+rownames(ly6a_present_cell)
+
+
+# Upregulated in Sca-1 High
+#genes_high <- rownames(markers[markers$avg_log2FC > 0 & markers$p_val_adj < 0.05, ])
+upregulated_genes <- rownames(markers[markers$avg_log2FC > 0, ])
+
+# Upregulated in Sca-1 Low
+genes_low <- rownames(markers[markers$avg_log2FC < 0 & markers$p_val_adj < 0.05, ])
+downregulated_genes <- rownames(markers[markers$avg_log2FC < 0, ])
+library(clusterProfiler)
+library(org.Mm.eg.db)  # Mouse genome annotation
+
+go_low1 <- enrichGO(gene = downregulated_genes,
+                   OrgDb = org.Mm.eg.db,
+                   keyType = "SYMBOL",
+                   ont = "BP",  # Biological Process
+                   pAdjustMethod = "BH",
+                   pvalueCutoff = 0.05)
+
+
+go_high <- enrichGO(gene = upregulated_genes, 
+                    OrgDb = org.Mm.eg.db, 
+                    keyType = "SYMBOL", 
+                    ont = "BP",   # "BP" for Biological Process
+                    pAdjustMethod = "BH", 
+                    pvalueCutoff = 0.05)
+
+# View top enriched terms
+head(go_high@result)
+write.csv(go_high,"go_highv2.csv")
+# Visualization
+dotplot(go_high, showCategory = 10)  # Show top 10 GO terms
+go_low <- enrichGO(gene = genes_low, 
+                   OrgDb = org.Mm.eg.db, 
+                   keyType = "SYMBOL", 
+                   ont = "BP",   
+                   pAdjustMethod = "BH", 
+                   pvalueCutoff = 0.05)
+
+# View results
+head(go_low@result)
+write.csv(go_low1,"go_lowv2.csv")
+# Visualization
+dotplot(go_low, showCategory = 10)
 
 
 
