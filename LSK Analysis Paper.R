@@ -155,7 +155,7 @@ gsea_ranking <- markers %>%
   arrange(desc(avg_log2FC)) %>%       # strictly decreasing
   select(gene, avg_log2FC)
 
-# Remove duplicates (GSEA requirement)
+# Remove duplicates
 gsea_ranking <- gsea_ranking[!duplicated(gsea_ranking$gene), ]
 
 # Convert to named numeric vector
@@ -322,6 +322,7 @@ head(go_low@result)
 write.csv(go_low1,"go_lowv2.csv")
 # Visualization
 dotplot(go_low, showCategory = 10)
+
 
 
 
