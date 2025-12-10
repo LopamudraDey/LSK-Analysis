@@ -27,7 +27,7 @@ library(stringr)
 ###############################
 # 2. Load 10X Data
 ###############################
-counts <- Read10X_h5("C:/Users/lopde33/RNADB/filtered_feature_bc_matrix.h5")
+counts <- Read10X_h5("LSK/filtered_feature_bc_matrix.h5")
 str(counts)
 
 ###############################
@@ -322,6 +322,7 @@ head(go_low@result)
 write.csv(go_low1,"go_lowv2.csv")
 # Visualization
 dotplot(go_low, showCategory = 10)
+
 
 
 
