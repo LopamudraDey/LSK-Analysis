@@ -131,6 +131,26 @@ ggplot(ly6a_present_cell@meta.data, aes(x = expression_group, fill = Phase)) +
   theme_minimal() +
   labs(y = "Proportion", title = "Cell Cycle Distribution in Ly6a High, Medium, and Low")
 
+  # Plot
+  ggplot(cellcycle_summary, aes(x = Phase, y = expression_group, fill = percent)) +
+  geom_tile(color = "white") +
+  
+  geom_text(aes(label = paste0(round(percent, 1), "%")), size = 5) +
+  
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  
+  xlab("Cell Cycle Phase") +
+  ylab("Ly6a Expression Group") +
+  ggtitle("Heatmap of Cell Cycle Phase Distribution by Ly6a Expression Group") +
+  
+  theme_minimal(base_size = 16) +   # ⬅ increases everything globally
+  
+  theme(
+    axis.text.y = element_text(size = 16, face = "bold"),  # ⬅ expression groups
+    axis.text.x = element_text(size = 14),
+    axis.title = element_text(size = 16, face = "bold"),
+    plot.title = element_text(size = 18, face = "bold")
+  )
 ###############################
 # 8. Differential Expression: Ly6a High vs Low
 ###############################
