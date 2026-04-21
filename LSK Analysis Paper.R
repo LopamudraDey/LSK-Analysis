@@ -221,7 +221,7 @@ ggplot(merged_gseaall,
 
   # Add p-values on plot
   geom_text(aes(label = p_label),
-            hjust = ifelse(merged_gsea$NES > 0, -0.15, 1.15),
+            hjust = ifelse(merged_gseaall$NES > 0, -0.15, 1.15),
             size = 3) +
 
   coord_flip() +
@@ -247,7 +247,7 @@ ggplot(merged_gseaall,
   ) +
 
   # Make room for labels outside bars
-  expand_limits(y = max(merged_gsea$NES) * 1.2)
+  expand_limits(y = max(merged_gseaall$NES) * 1.2)
 
  ##############GO Analysis #####################################
                          
