@@ -132,17 +132,13 @@ ggplot(ly6a_present_cell@meta.data, aes(x = expression_group, fill = Phase)) +
 hl_cells <- subset(ly6a_present_cell, subset = expression_group %in% c("Low","High"))
 Idents(hl_cells) <- hl_cells$expression_group
 
-markers_high_vs_low <- FindMarkers(hl_cells, ident.1="High", ident.2="Low", logfc.threshold=0.25, min.pct=0.1)
-head(markers_high_vs_low)
+markers <- FindMarkers(hl_cells, ident.1="High", ident.2="Low", logfc.threshold=0.25, min.pct=0.1)
+
 
 ###############################
 # 9. GSEA / GO Analysis
 ###############################
-# -----------------------------
-# 1. Prepare markers dataframe
-# -----------------------------
                          
-markers <- FindMarkers(ly6a_present_cell, ident.1 = "High", ident.2 = "Low", logfc.threshold = 0.25)
 head(markers)
 markers <- as.data.frame(markers)
 markers <- markers %>% rownames_to_column("gene")
