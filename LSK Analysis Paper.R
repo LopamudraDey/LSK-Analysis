@@ -67,6 +67,11 @@ DimPlot(seurat_obj)
 ###############################
 # 4. Ly6a & Kit Expression
 ###############################
+ly6a_cells <- sum(ly6a_expr > 0)
+ly6a_cells
+
+kit_cells <- sum(kit_expr > 0)
+kit_cells
 VlnPlot(seurat_obj, features = c("Ly6a", "Kit"), pt.size = 0.1)
 ly6a_expr <- FetchData(seurat_obj, "Ly6a")
 kit_expr <- FetchData(seurat_obj, "Kit")
