@@ -344,6 +344,25 @@ write.csv(go_low1,"go_lowv2.csv")
 # Visualization
 dotplot(go_low, showCategory = 10)
 
+#############################################################################################################################
+# Ly6a expression vs scores
+####################################################################
+df <- FetchData(seurat_obj, vars = c("Ly6a", "S.Score", "G2M.Score"))
+
+ggplot(df, aes(x = log1p(Ly6a), y = G2M.Score)) +
+  
+  geom_point(alpha = 0.3, size = 0.8) +
+  
+  geom_smooth(method = "lm", color = "blue") +
+  
+  xlab("log1p(Ly6a expression)") +
+  ylab("G2/M score") +
+  ggtitle("Association between Ly6a and G2/M activity") +
+  
+  theme_minimal(base_size = 16)
+cor.test(df$Ly6a, df$S.Score, method = "pearson")
+
+cor.test(df$Ly6a, df$G2M.Score, method = "pearson")
 
 
 
