@@ -94,13 +94,25 @@ DimPlot(seurat_obj, group.by = "Phase", cols = c("G1"="red","S"="green","G2/M"="
 ###############################
 # 6. Ly6a Positive Cells & Grouping
 ###############################
-ly6a_present_cell <- subset(seurat_obj, subset = Ly6a > 0)
-ly6a_present_cell$Ly6a_expression <- FetchData(ly6a_present_cell, "Ly6a")$Ly6a
+# Subset Ly6a-positive cells
+y6a_present_cell <- subset(seurat_obj, subset = Ly6a > 0)
 
-ly6a_present_cell$expression_group <- cut(ly6a_present_cell$Ly6a_expression,
-                                          breaks = quantile(ly6a_present_cell$Ly6a_expression, probs = 0:3/3),
-                                          labels = c("Low", "Medium", "High"),
-                                          include.lowest = TRUE)
+# Extract Ly6a expression
+ly6a_vals <- FetchData(ly6a_present_cell, "Ly6a")$Ly6a
+
+# Define cutoffs
+cuts <- quantile(ly6a_vals, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE)
+cuts <- unique(cuts)  # prevents duplicate break errors
+
+ly6a_present_cell$expression_group <- cut(
+  ly6a_vals,
+  breaks = cuts,
+  labels = c("Low", "Medium", "High")[seq_len(length(cuts)-1)],
+  include.lowest = TRUE
+)
+
+# Check distribution
+table(ly6a_present_cell$expression_group)
 
 table(ly6a_present_cell$expression_group)
 
