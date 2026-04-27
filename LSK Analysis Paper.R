@@ -180,9 +180,7 @@ head(markers)
 markers <- as.data.frame(markers)
 markers <- markers %>% rownames_to_column("gene")
 
-# -----------------------------
-# 2. Build the ranked vector
-# -----------------------------
+
 gsea_ranking <- markers %>%
   filter(!is.na(avg_log2FC)) %>%      # remove NA
   arrange(desc(avg_log2FC)) %>%       # strictly decreasing
@@ -199,7 +197,7 @@ names(ranked_genes) <- gsea_ranking$gene
 ranked_genes <- sort(ranked_genes, decreasing = TRUE)
 
 # -----------------------------
-# 3. Run GSEA using GO:BP
+#  Run GSEA using GO:BP
 # -----------------------------
 gsea_go <- gseGO(
   geneList = ranked_genes,
@@ -213,7 +211,7 @@ gsea_go <- gseGO(
 )
 
 # -----------------------------
-# 4. Plot top results
+#  Plot top results
 # -----------------------------
 library(enrichplot)
 
@@ -357,7 +355,7 @@ write.csv(go_low1,"go_lowv2.csv")
 dotplot(go_low, showCategory = 10)
 
 #############################################################################################################################
-# Ly6a expression vs cell cycle activity scores
+# 10. Ly6a expression vs cell cycle activity scores
 #############################################################################################################################
 df <- FetchData(seurat_obj, vars = c("Ly6a", "S.Score", "G2M.Score"))
 
