@@ -357,49 +357,42 @@ dotplot(go_low, showCategory = 10)
 #############################################################################################################################
 # 10. Ly6a expression vs cell cycle activity scores
 #############################################################################################################################
-df <- FetchData(seurat_obj, vars = c("Ly6a", "S.Score", "G2M.Score"))
+ly6a_pos <- subset(seurat_obj, subset = Ly6a > 0)
+ly6a_pos
+df <- FetchData(ly6a_pos, vars = c("Ly6a", "S.Score", "G2M.Score"))
+df$Ly6a_log <- log1p(df$Ly6a)
+cor.test(df$Ly6a_log, df$S.Score, method = "pearson")
 
-cor.test(df$Ly6a, df$S.Score, method = "pearson")
-
-cor.test(df$Ly6a, df$G2M.Score, method = "pearson")
+cor.test(df$Ly6a_log, df$G2M.Score, method = "pearson")
 
 
-ggplot(df, aes(x = log1p(Ly6a), y = S.Score)) +
-  
-  geom_point(alpha = 0.3, size = 0.8) +
-  
-  geom_smooth(method = "lm", color = "blue") +
-  
-  xlab("log1p(Ly6a expression)") +
-  ylab("S score") +
-  ggtitle("Association between Ly6a and S activity") +
-  
-  theme_minimal(base_size = 16)
 
-pear_s <- ggplot(df, aes(x = log1p(Ly6a), y = S.Score)) +
+p_s <- ggplot(df, aes(x = log1p(Ly6a), y = S.Score)) +
   geom_point(alpha = 0.25, size = 0.7) +
   geom_smooth(method = "lm", se = TRUE) +
   annotate("text", x = max(log1p(df$Ly6a)), y = max(df$S.Score),
-           label = "r = -0.09, p < 2.2e-16", hjust = 1, size = 5) +
+           label = "r = -0.296, p < 2.2e-16", hjust = 1, size = 5) +
   labs(
     x = bquote("log1p("*italic("Ly6a")*")"), 
     y = "S-phase score",
-    title = bquote(italic("Ly6a") ~ "vs S-phase activity")
+    title = bquote("Association between" ~ italic("Ly6a") ~ "and S activity")
   ) + # Fixed: Added closing parenthesis here
   theme_minimal(base_size = 16)
 
-pear_g2m <- ggplot(df, aes(x = log1p(Ly6a), y = G2M.Score)) +
+p_g2m <- ggplot(df, aes(x = log1p(Ly6a), y = G2M.Score)) +
   geom_point(alpha = 0.25, size = 0.7) +
   geom_smooth(method = "lm", se = TRUE) +
   annotate("text", x = max(log1p(df$Ly6a)), y = max(df$G2M.Score),
-           label = "r = -0.11, p < 2.2e-16", hjust = 1, size = 5) +
+           label = "r = -0.301, p < 2.2e-16", hjust = 1, size = 5) +
   labs(
     # Use bquote to italicize specific text
     x = bquote("log1p("*italic("Ly6a")*")"), 
     y = "G2/M score",
-    title = bquote(italic("Ly6a") ~ "vs G2/M activity")
+    title = bquote("Association between" ~italic("Ly6a") ~ "and G2/M activity")
   ) +
   theme_minimal(base_size = 16)
+
+patchwork::wrap_plots(p_s, p_g2m)
 
 patchwork::wrap_plots(pear_s, pear_g2m)
 
