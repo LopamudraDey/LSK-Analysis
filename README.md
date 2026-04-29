@@ -17,3 +17,6 @@ GSEA: Finds Differentially Expressed Genes (DEGs) between Ly6a High and Low cell
 Runs Gene Set Enrichment Analysis (GSEA) on the ranked DEGs (using GO:BP) and generates a divergent bar plot of the top enriched pathways.
 
 ORA: Also performs standard GO Over-Representation Analysis (ORA) on significant up/downregulated genes.
+
+Pearson Correlation: Association of Ly6a expression with cell cycle activity in Ly6a-positive cells. 
+
