@@ -155,10 +155,10 @@ ggplot(ly6a_present_cell@meta.data, aes(x = expression_group, fill = Phase)) +
   ylab("Ly6a Expression Group") +
   ggtitle("Heatmap of Cell Cycle Phase Distribution by Ly6a Expression Group") +
   
-  theme_minimal(base_size = 16) +   # ⬅ increases everything globally
+  theme_minimal(base_size = 16) +   
   
   theme(
-    axis.text.y = element_text(size = 16, face = "bold"),  # ⬅ expression groups
+    axis.text.y = element_text(size = 16, face = "bold"),  #  expression groups
     axis.text.x = element_text(size = 14),
     axis.title = element_text(size = 16, face = "bold"),
     plot.title = element_text(size = 18, face = "bold")
