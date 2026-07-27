@@ -46,9 +46,10 @@ BSgenome.Mmusculus.UCSC.mm10
 
 The workflow expects a standard 10x Genomics Multiome output directory.
 
-outs/
-├── filtered_feature_bc_matrix.h5
-└── atac_fragments.tsv.gz
+outs
+filtered_feature_bc_matrix.h5
+
+atac_fragments.tsv.gz
 
 The data directory is specified in the script as
 
