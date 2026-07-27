@@ -4,6 +4,31 @@
 # LSK DATASET
 LSK scRNA .h5 file is available at: 
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM8960398
+# Requirements
+**Software**
+R (version 4.2 or newer recommended)
+RStudio (recommended)
+Required Packages
+
+The analysis uses both CRAN and Bioconductor packages.
+
+CRAN Packages
+Seurat
+Signac
+tidyverse
+hdf5r
+ggpubr
+rstatix
+stringr
+UpSetR
+**Bioconductor Packages**
+clusterProfiler
+org.Mm.eg.db
+JASPAR2020
+TFBSTools
+BSgenome.Mmusculus.UCSC.mm10
+
+
 # LSK scRNA-seq Analysis Summary
 This script analyzes scRNA-seq data from LSK cells, focusing on Ly6a (Sca-1) expression.
 
