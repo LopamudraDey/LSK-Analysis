@@ -1,4 +1,6 @@
 # LSK-Analysis
+<img width="1868" height="899" alt="image" src="https://github.com/user-attachments/assets/ad3020ef-e80e-4366-a187-e7e88038e844" />
+
 # LSK DATASET
 LSK scRNA .h5 file is available at: 
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM8960398
