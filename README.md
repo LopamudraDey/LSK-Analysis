@@ -13,23 +13,46 @@ Required Packages
 The analysis uses both CRAN and Bioconductor packages.
 
 CRAN Packages
+
 Seurat
+
 Signac
+
 tidyverse
+
 hdf5r
+
 ggpubr
+
 rstatix
+
 stringr
+
 UpSetR
 
 **Bioconductor Packages**
 
 clusterProfiler
+
 org.Mm.eg.db
+
 JASPAR2020
+
 TFBSTools
+
 BSgenome.Mmusculus.UCSC.mm10
 
+# Input Files
+
+The workflow expects a standard 10x Genomics Multiome output directory.
+
+outs/
+├── filtered_feature_bc_matrix.h5
+└── atac_fragments.tsv.gz
+
+The data directory is specified in the script as
+
+data_dir <- "D:/LSK_DB/outs"
 
 # LSK scRNA-seq Analysis Summary
 This script analyzes scRNA-seq data from LSK cells, focusing on Ly6a (Sca-1) expression.
