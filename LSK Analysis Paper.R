@@ -163,38 +163,49 @@ ggplot(ly6a_present_cell@meta.data, aes(x = expression_group, fill = Phase)) +
     axis.title = element_text(size = 16, face = "bold"),
     plot.title = element_text(size = 18, face = "bold")
   )
+library(tidyverse)
+library(hdf5r)
+library(clusterProfiler)
+library(org.Mm.eg.db)
+library(enrichplot)
+
 ###############################
-# 8. Differential Expression: Ly6a High vs Low
+# 8. Differential Expression
 ###############################
-hl_cells <- subset(ly6a_present_cell, subset = expression_group %in% c("Low","High"))
+hl_cells <- subset(ly6a_present_cell, subset = expression_group %in% c("Low", "High"))
 Idents(hl_cells) <- hl_cells$expression_group
 
-markers <- FindMarkers(hl_cells, ident.1="High", ident.2="Low", logfc.threshold=0.25, min.pct=0.1)
-
+markers <- FindMarkers(
+  hl_cells,
+  ident.1 = "High",
+  ident.2 = "Low",
+  logfc.threshold = 0.25,
+  min.pct = 0.1
+)
 
 ###############################
 # 9. GSEA / GO Analysis
 ###############################
-                         
 head(markers)
-markers <- as.data.frame(markers)
-markers <- markers %>% rownames_to_column("gene")
 
+markers <- as.data.frame(markers) %>%
+  rownames_to_column("gene")
 
+# Rank genes by avg_log2FC (descending)
 gsea_ranking <- markers %>%
-  filter(!is.na(avg_log2FC)) %>%      # remove NA
-  arrange(desc(avg_log2FC)) %>%       # strictly decreasing
-  select(gene, avg_log2FC)
+  dplyr::filter(!is.na(avg_log2FC)) %>%
+  dplyr::arrange(desc(avg_log2FC)) %>%
+  dplyr::select(gene, avg_log2FC)
 
-# Remove duplicates
+# Remove duplicate genes (keeps highest logFC copy because of prior sort)
 gsea_ranking <- gsea_ranking[!duplicated(gsea_ranking$gene), ]
 
-# Convert to named numeric vector
+# Convert to named numeric vector, sorted strictly decreasing
 ranked_genes <- gsea_ranking$avg_log2FC
 names(ranked_genes) <- gsea_ranking$gene
-
-# Ensure strictly decreasing sort
 ranked_genes <- sort(ranked_genes, decreasing = TRUE)
+
+head(ranked_genes)
 
 # -----------------------------
 #  Run GSEA using GO:BP
@@ -211,42 +222,52 @@ gsea_go <- gseGO(
 )
 
 # -----------------------------
-#  Plot top results
+#  Plot top results (dotplot)
 # -----------------------------
-library(enrichplot)
-
 dotplot(gsea_go, showCategory = 20) +
-  ggtitle("GSEA (GO Biological Process): Ly6a High vs Low")
+  ggtitle("GSEA (GO Biological Process): Ly6a High vs Low") +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.text.x = element_text(size = 13),
+    axis.text.y = element_text(size = 13),
+    axis.title = element_text(size = 15),
+    legend.title = element_text(size = 13),
+    legend.text = element_text(size = 12)
+  )
 
-# Save in .csv
+# Save results to .csv
 write.csv(gsea_go@result, "Ly6a_gsea_go_results.csv", row.names = FALSE)
 
 # ------------------------------------------
 # Select top 15 Positive and Negative NES
 # ------------------------------------------
+# gsea_go is an S4 gseaResult object -- convert to data frame before dplyr verbs
+gsea_df <- as.data.frame(gsea_go)
 
-top_positive <- gsea_go %>%
+top_positive <- gsea_df %>%
   arrange(desc(NES)) %>%
   head(15)
 
-top_negative <- gsea_go %>%
+top_negative <- gsea_df %>%
   arrange(NES) %>%
   head(15)
 
 # --------------------------------------------
-# Merge positive + negative
-# -------------------------------------------
+# Merge positive + negative (dedupe just in case of overlap)
+# --------------------------------------------
+merged_gseaall <- rbind(top_positive, top_negative) %>%
+  distinct(ID, .keep_all = TRUE)
 
-merged_gseaall <- rbind(top_positive, top_negative)
-
-# Convert p.adjust 
-merged_gseaall$p_label <- format(merged_gseaall$p.adjust,
-                              scientific = TRUE, digits = 2)
+# Format p.adjust for labels
+merged_gseaall$p_label <- format(
+  merged_gseaall$p.adjust,
+  scientific = TRUE,
+  digits = 2
+)
 
 # ----------------------------------------------------
 # Plot in a single combined panel with p-values
-# -----------------------------------------------
-
+# ----------------------------------------------------
 ggplot(merged_gseaall,
        aes(x = reorder(Description, NES),
            y = NES,
@@ -257,7 +278,7 @@ ggplot(merged_gseaall,
   # Add p-values on plot
   geom_text(aes(label = p_label),
             hjust = ifelse(merged_gseaall$NES > 0, -0.15, 1.15),
-            size = 3) +
+            size = 4.5) +
 
   coord_flip() +
 
@@ -275,14 +296,19 @@ ggplot(merged_gseaall,
     fill = "NES"
   ) +
 
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 16) +
   theme(
-    axis.text.y = element_text(size = 9),
-    plot.title = element_text(size = 14, face = "bold")
+    axis.text.y = element_text(size = 13),
+    axis.text.x = element_text(size = 13),
+    axis.title = element_text(size = 15, face = "bold"),
+    plot.title = element_text(size = 18, face = "bold"),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
   ) +
 
-  # Make room for labels outside bars
-  expand_limits(y = max(merged_gseaall$NES) * 1.2)
+  # Make room for labels outside bars (both directions)
+  expand_limits(y = c(min(merged_gseaall$NES) * 1.2,
+                       max(merged_gseaall$NES) * 1.2))
 
  ##############GO Analysis #####################################
                          
